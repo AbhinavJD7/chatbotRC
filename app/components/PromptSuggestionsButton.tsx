@@ -1,13 +1,7 @@
-import { text } from "stream/consumers"
-
-const PromptSuggestionsButton = (text, onClick) =>{
-    return(
-        <button className="prompt-suggestion-button" 
-        onClick={onClick}
-        >
-            {text}
-        </button>
-    )
+export default function PromptSuggestionsButton({ text, onClick }) {
+  return (
+    <button onClick={onClick} className="prompt-suggestion-btn">
+      {text}
+    </button>
+  );
 }
-
-export default PromptSuggestionsButton
