@@ -217,7 +217,8 @@ END CONTEXT
     for (const modelName of modelNamesToTry) {
       try {
         console.log(`Attempting to use model: ${modelName}`);
-        const currentModel = google(modelName, { apiKey: apiKey });
+        // google() function reads API key from GOOGLE_GENERATIVE_AI_API_KEY env var
+        const currentModel = google(modelName);
         result = await streamText({
           model: currentModel,
           system: systemPrompt,
