@@ -247,23 +247,16 @@ END CONTEXT
     console.log('streamText completed, returning response...');
 
     // Return the streaming response for useChat hook from @ai-sdk/react
-    // The useChat hook expects a data stream response
-    // Try toUIMessageStreamResponse first (it was working in logs)
+    // The useChat hook can work with toTextStreamResponse
     try {
-      if (result && typeof result.toUIMessageStreamResponse === 'function') {
-        console.log('Using toUIMessageStreamResponse()');
-        return result.toUIMessageStreamResponse();
+      if (result && typeof result.toTextStreamResponse === 'function') {
+        console.log('Using toTextStreamResponse()');
+        return result.toTextStreamResponse();
       }
 
-      // Fallback: try toDataStreamResponse
-      if (result && typeof result.toDataStreamResponse === 'function') {
-        console.log('Using toDataStreamResponse()');
-        return result.toDataStreamResponse();
-      }
-
-      // If neither exists, the result object might be different than expected
+      // If the method doesn't exist, the result object might be different than expected
       console.error('No response method found. Result keys:', result ? Object.keys(result) : 'null');
-      throw new Error('StreamText result does not have toUIMessageStreamResponse or toDataStreamResponse method');
+      throw new Error('StreamText result does not have toTextStreamResponse method');
 
     } catch (responseError) {
       const error = responseError instanceof Error ? responseError : new Error(String(responseError));
