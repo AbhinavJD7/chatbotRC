@@ -9,7 +9,7 @@ import LoadingBubbles from "./components/LoadingBubbles"
 
 const Home = () => {
   // Explicitly specify the API endpoint
-  const { messages, input, handleInputChange, handleSubmit, isLoading, sendMessage, error, setInput } = useChat({
+  const { messages, input, handleInputChange, isLoading, sendMessage, error, setInput } = useChat({
     api: '/api/chat'
   })
 
@@ -98,9 +98,13 @@ const Home = () => {
             <div className="messages-container">
               {messages.map((message) => {
                 // Handle different message formats from useChat
+                interface MessagePart {
+                  type: string;
+                  text?: string;
+                }
                 const messageContent = typeof message.content === 'string'
                   ? message.content
-                  : message.parts?.find((p: any) => p.type === 'text')?.text || '';
+                  : (message.parts as MessagePart[] | undefined)?.find((p: MessagePart) => p.type === 'text')?.text || '';
 
                 return (
                   <Bubble

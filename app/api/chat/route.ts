@@ -3,7 +3,21 @@
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { DataAPIClient } from "@datastax/astra-db-ts";
 import { google } from '@ai-sdk/google';
-import { streamText, convertToModelMessages } from 'ai';
+import { streamText, convertToModelMessages, StreamTextResult } from 'ai';
+
+// Type definitions for message structures
+interface MessagePart {
+  type: string;
+  text?: string;
+}
+
+interface Message {
+  role?: string;
+  content?: string;
+  text?: string;
+  message?: string;
+  parts?: MessagePart[];
+}
 
 // Get environment variables
 const {
@@ -83,7 +97,7 @@ export async function POST(req: Request) {
 
     if (latestMessageObj?.parts && Array.isArray(latestMessageObj.parts)) {
       // Handle parts array structure
-      const textPart = latestMessageObj.parts.find((part: any) => part.type === 'text' && part.text);
+      const textPart = latestMessageObj.parts.find((part: MessagePart) => part.type === 'text' && part.text);
       latestMessage = textPart?.text;
     } else {
       // Handle direct content properties
@@ -166,13 +180,13 @@ END CONTEXT
     } catch (convertError) {
       console.warn('⚠️ convertToModelMessages failed, using manual conversion:', convertError);
       // Fallback to manual conversion
-      formattedMessages = messages.map((msg: any) => {
+      formattedMessages = messages.map((msg: Message) => {
         let content = '';
 
         // Extract content from different message structures
         if (msg.parts && Array.isArray(msg.parts)) {
           // Handle parts array structure
-          const textPart = msg.parts.find((part: any) => part.type === 'text' && part.text);
+          const textPart = msg.parts.find((part: MessagePart) => part.type === 'text' && part.text);
           content = textPart?.text || '';
         } else {
           // Handle direct content properties
@@ -197,8 +211,8 @@ END CONTEXT
       'gemini-pro-latest',       // Latest Pro (auto-updates)
       'gemini-2.0-flash-exp',    // Experimental Flash
     ];
-    let result: any = null;
-    let lastError: any = null;
+    let result: StreamTextResult<unknown> | null = null;
+    let lastError: Error | null = null;
 
     for (const modelName of modelNamesToTry) {
       try {
@@ -211,9 +225,10 @@ END CONTEXT
         });
         console.log(`✅ Successfully using model: ${modelName}`);
         break; // Success, exit loop
-      } catch (modelError: any) {
-        console.error(`❌ Model ${modelName} failed:`, modelError.message);
-        lastError = modelError;
+      } catch (modelError) {
+        const error = modelError instanceof Error ? modelError : new Error(String(modelError));
+        console.error(`❌ Model ${modelName} failed:`, error.message);
+        lastError = error;
         // Continue to next model
         continue;
       }
@@ -234,24 +249,25 @@ END CONTEXT
     // The useChat hook expects a data stream response
     // Try toUIMessageStreamResponse first (it was working in logs)
     try {
-      if (typeof (result as any).toUIMessageStreamResponse === 'function') {
+      if (result && typeof result.toUIMessageStreamResponse === 'function') {
         console.log('Using toUIMessageStreamResponse()');
-        return (result as any).toUIMessageStreamResponse();
+        return result.toUIMessageStreamResponse();
       }
 
       // Fallback: try toDataStreamResponse
-      if (typeof (result as any).toDataStreamResponse === 'function') {
+      if (result && typeof result.toDataStreamResponse === 'function') {
         console.log('Using toDataStreamResponse()');
-        return (result as any).toDataStreamResponse();
+        return result.toDataStreamResponse();
       }
 
       // If neither exists, the result object might be different than expected
-      console.error('No response method found. Result keys:', Object.keys(result));
+      console.error('No response method found. Result keys:', result ? Object.keys(result) : 'null');
       throw new Error('StreamText result does not have toUIMessageStreamResponse or toDataStreamResponse method');
 
-    } catch (responseError: any) {
-      console.error('Error creating response:', responseError);
-      throw new Error(`Failed to create streaming response: ${responseError.message}`);
+    } catch (responseError) {
+      const error = responseError instanceof Error ? responseError : new Error(String(responseError));
+      console.error('Error creating response:', error);
+      throw new Error(`Failed to create streaming response: ${error.message}`);
     }
 
   } catch (err) {
