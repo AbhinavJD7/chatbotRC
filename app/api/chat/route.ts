@@ -3,7 +3,7 @@
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { DataAPIClient } from "@datastax/astra-db-ts";
 import { google } from '@ai-sdk/google';
-import { streamText, convertToModelMessages, StreamTextResult } from 'ai';
+import { streamText, convertToModelMessages } from 'ai';
 
 // Type definitions for message structures
 interface MessagePart {
@@ -211,7 +211,7 @@ END CONTEXT
       'gemini-pro-latest',       // Latest Pro (auto-updates)
       'gemini-2.0-flash-exp',    // Experimental Flash
     ];
-    let result: StreamTextResult<unknown> | null = null;
+    let result: Awaited<ReturnType<typeof streamText>> | null = null;
     let lastError: Error | null = null;
 
     for (const modelName of modelNamesToTry) {
