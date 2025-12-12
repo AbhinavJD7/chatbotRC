@@ -32,9 +32,15 @@ const {
 // Use GOOGLE_GENERATIVE_AI_API_KEY if available, fallback to GEMINI_API_KEY
 const apiKey = GOOGLE_GENERATIVE_AI_API_KEY || GEMINI_API_KEY;
 
-// Validate required environment variables
+// Validate required environment variables at startup
 if (!apiKey || !ASTRA_DB_APPLICATION_TOKEN || !ASTRA_DB_API_ENDPOINT || !ASTRA_DB_COLLECTION) {
-  throw new Error('Missing required environment variables');
+  const missingVars = [];
+  if (!apiKey) missingVars.push('GEMINI_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY');
+  if (!ASTRA_DB_APPLICATION_TOKEN) missingVars.push('ASTRA_DB_APPLICATION_TOKEN');
+  if (!ASTRA_DB_API_ENDPOINT) missingVars.push('ASTRA_DB_API_ENDPOINT');
+  if (!ASTRA_DB_COLLECTION) missingVars.push('ASTRA_DB_COLLECTION');
+
+  throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
 }
 
 // Set GOOGLE_GENERATIVE_AI_API_KEY environment variable for @ai-sdk/google compatibility
@@ -96,18 +102,20 @@ export async function POST(req: Request) {
     let latestMessage: string;
 
     if (latestMessageObj?.parts && Array.isArray(latestMessageObj.parts)) {
-      // Handle parts array structure
+      // Handle parts array structure (useChat v2.0.15 format)
       const textPart = latestMessageObj.parts.find((part: MessagePart) => part.type === 'text' && part.text);
-      latestMessage = textPart?.text;
+      latestMessage = textPart?.text || '';
     } else {
       // Handle direct content properties
-      latestMessage = latestMessageObj?.content || latestMessageObj?.text || latestMessageObj?.message;
+      latestMessage = latestMessageObj?.content || latestMessageObj?.text || latestMessageObj?.message || '';
     }
 
+    // Validate message content
     if (typeof latestMessage !== 'string' || latestMessage.trim() === '') {
       return new Response(
         JSON.stringify({
-          error: 'No valid message content found'
+          error: 'No valid message content found',
+          details: 'The message must contain text content'
         }),
         {
           status: 400,
@@ -147,14 +155,21 @@ export async function POST(req: Request) {
         });
         const documents = await cursor.toArray();
 
-        // Join the documents as text
-        docContext = documents?.map(doc => doc.text || doc.content || '').filter(text => text.length > 0).join("\n") || "";
+        // Join the documents as text with proper filtering
+        if (documents && Array.isArray(documents)) {
+          docContext = documents
+            .map((doc: { text?: string; content?: string }) => doc?.text || doc?.content || '')
+            .filter((text: string) => text && text.trim().length > 0)
+            .join("\n\n")
+            .trim();
+        }
 
         console.log(`Retrieved ${documents?.length || 0} relevant documents`);
       }
     } catch (dbError) {
       console.error("Error querying Astra DB:", dbError);
       // Continue without context rather than failing completely
+      // This ensures the chatbot still works even if the database is temporarily unavailable
       docContext = "";
     }
 
@@ -246,9 +261,10 @@ END CONTEXT
 
     console.log('streamText completed, returning response...');
 
-    // Return the streaming response for useChat hook from @ai-sdk/react
-    // The useChat hook can work with toTextStreamResponse
+    // Return the streaming response for useChat hook from @ai-sdk/react v2.0.15
+    // useChat works with toTextStreamResponse
     try {
+      // Check for toTextStreamResponse (available in StreamTextResult)
       if (result && typeof result.toTextStreamResponse === 'function') {
         console.log('Using toTextStreamResponse()');
         return result.toTextStreamResponse();

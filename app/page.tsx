@@ -9,21 +9,16 @@ import LoadingBubbles from "./components/LoadingBubbles"
 
 const Home = () => {
   // Explicitly specify the API endpoint
-  const { messages, input, handleInputChange, isLoading, sendMessage, error, setInput } = useChat({
+  // useChat v2.0.15 doesn't provide input/handleInputChange - manage it manually
+  const { messages, sendMessage, status, error, stop } = useChat({
     api: '/api/chat'
   })
 
-  // Local state as fallback if useChat input doesn't work
-  const [localInput, setLocalInput] = useState('')
-
-  // Sync local input with useChat input
-  useEffect(() => {
-    if (input !== undefined) {
-      setLocalInput(input)
-    }
-  }, [input])
+  // Manage input state manually (useChat v2.0.15 doesn't provide input)
+  const [input, setInput] = useState('')
 
   const noMessages = !messages || messages.length === 0
+  const isLoading = status === 'streaming' || status === 'submitted'
 
   // Auto-scroll to bottom when new messages arrive
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -35,20 +30,14 @@ const Home = () => {
   }, [messages, noMessages])
 
   const handlePrompt = (promptText: string) => {
-    if (promptText && promptText.trim()) {
-      sendMessage({ text: promptText });
+    if (promptText && promptText.trim() && !isLoading) {
+      sendMessage({ text: promptText.trim() });
     }
   };
 
-  // Handle input change with fallback
-  const handleInputChangeSafe = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setLocalInput(value)
-    if (handleInputChange) {
-      handleInputChange(e)
-    } else if (setInput) {
-      setInput(value)
-    }
+  // Handle input change
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value)
   };
 
   return (
@@ -97,21 +86,33 @@ const Home = () => {
           <>
             <div className="messages-container">
               {messages.map((message) => {
-                // Handle different message formats from useChat
-                interface MessagePart {
-                  type: string;
-                  text?: string;
+                // Handle different message formats from useChat v2.0.15
+                // Messages can have content as string or parts array
+                let messageContent = '';
+
+                if (typeof message.content === 'string') {
+                  messageContent = message.content;
+                } else if (message.parts && Array.isArray(message.parts)) {
+                  // Handle parts array structure
+                  const textPart = message.parts.find((part: { type?: string; text?: string }) =>
+                    part.type === 'text' && part.text
+                  );
+                  messageContent = textPart?.text || '';
+                } else {
+                  messageContent = '';
                 }
-                const messageContent = typeof message.content === 'string'
-                  ? message.content
-                  : (message.parts as MessagePart[] | undefined)?.find((p: MessagePart) => p.type === 'text')?.text || '';
+
+                // Ensure we have valid content
+                if (!messageContent) {
+                  return null;
+                }
 
                 return (
                   <Bubble
-                    key={message.id}
+                    key={message.id || `msg-${Math.random()}`}
                     message={{
                       content: messageContent,
-                      role: message.role as 'user' | 'assistant',
+                      role: (message.role || 'user') as 'user' | 'assistant',
                       id: message.id
                     }}
                   />
@@ -126,21 +127,20 @@ const Home = () => {
 
       <form onSubmit={(e) => {
         e.preventDefault()
-        const textToSend = input || localInput
-        if (textToSend && textToSend.trim()) {
+        const textToSend = input.trim()
+        if (textToSend) {
           sendMessage({ text: textToSend })
-          setLocalInput('')
-          if (setInput) setInput('')
+          setInput('')
         }
       }}>
         <input
           className="question-box"
-          onChange={handleInputChangeSafe}
-          value={input !== undefined ? input : localInput}
+          onChange={handleInputChange}
+          value={input}
           placeholder="Ask me something about RapidClaims..."
           disabled={isLoading}
         />
-        <button type="submit" disabled={isLoading || !(input || localInput)?.trim()}>
+        <button type="submit" disabled={isLoading || !input.trim()}>
           {isLoading ? 'Sending...' : 'Send'}
         </button>
         {error && (
@@ -153,7 +153,24 @@ const Home = () => {
             borderRadius: '8px',
             fontSize: '14px'
           }}>
-            ⚠️ Error: {error.message || 'An error occurred'}
+            ⚠️ Error: {error instanceof Error ? error.message : String(error) || 'An error occurred'}
+            {status === 'error' && (
+              <button
+                onClick={() => window.location.reload()}
+                style={{
+                  marginLeft: '12px',
+                  padding: '4px 8px',
+                  background: '#dc2626',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                Reload
+              </button>
+            )}
           </div>
         )}
       </form>
