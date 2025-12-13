@@ -158,7 +158,13 @@ export async function POST(req: Request) {
         // Join the documents as text with proper filtering
         if (documents && Array.isArray(documents)) {
           docContext = documents
-            .map((doc: { text?: string; content?: string }) => doc?.text || doc?.content || '')
+            .map((doc: { text?: string; content?: string;[key: string]: unknown }) => {
+              // Handle different document structures
+              if (typeof doc === 'object' && doc !== null) {
+                return doc.text || doc.content || '';
+              }
+              return '';
+            })
             .filter((text: string) => text && text.trim().length > 0)
             .join("\n\n")
             .trim();
@@ -262,17 +268,29 @@ END CONTEXT
     console.log('streamText completed, returning response...');
 
     // Return the streaming response for useChat hook from @ai-sdk/react v2.0.15
-    // useChat works with toTextStreamResponse
+    // useChat expects toUIMessageStreamResponse for proper message handling
     try {
-      // Check for toTextStreamResponse (available in StreamTextResult)
+      // Use toUIMessageStreamResponse - this is the correct method for useChat hook
+      // Type assertion needed because TypeScript doesn't recognize this method on the generic type
+      const resultWithMethods = result as {
+        toUIMessageStreamResponse?: () => Response;
+        toTextStreamResponse?: () => Response;
+      };
+
+      if (resultWithMethods && typeof resultWithMethods.toUIMessageStreamResponse === 'function') {
+        console.log('Using toUIMessageStreamResponse() - correct method for useChat');
+        return resultWithMethods.toUIMessageStreamResponse();
+      }
+
+      // Fallback to toTextStreamResponse (should work but less ideal)
       if (result && typeof result.toTextStreamResponse === 'function') {
-        console.log('Using toTextStreamResponse()');
+        console.log('Using toTextStreamResponse() - fallback');
         return result.toTextStreamResponse();
       }
 
-      // If the method doesn't exist, the result object might be different than expected
-      console.error('No response method found. Result keys:', result ? Object.keys(result) : 'null');
-      throw new Error('StreamText result does not have toTextStreamResponse method');
+      // If neither exists, the result object might be different than expected
+      console.error('No response method found. Available methods:', result ? Object.getOwnPropertyNames(Object.getPrototypeOf(result)) : 'null');
+      throw new Error('StreamText result does not have toUIMessageStreamResponse or toTextStreamResponse method');
 
     } catch (responseError) {
       const error = responseError instanceof Error ? responseError : new Error(String(responseError));

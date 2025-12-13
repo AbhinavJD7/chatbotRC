@@ -11,7 +11,16 @@ const Home = () => {
   // Explicitly specify the API endpoint
   // useChat v2.0.15 doesn't provide input/handleInputChange - manage it manually
   const { messages, sendMessage, status, error, stop } = useChat({
-    api: '/api/chat'
+    api: '/api/chat',
+    onError: (error) => {
+      console.error('useChat error:', error);
+    },
+    onFinish: (message) => {
+      console.log('Message finished:', message);
+      console.log('Message content:', message.content);
+      console.log('Message parts:', message.parts);
+      console.log('Message role:', message.role);
+    }
   })
 
   // Manage input state manually (useChat v2.0.15 doesn't provide input)
@@ -87,23 +96,48 @@ const Home = () => {
             <div className="messages-container">
               {messages.map((message) => {
                 // Handle different message formats from useChat v2.0.15
-                // Messages can have content as string or parts array
+                // Messages from toUIMessageStreamResponse can have different structures
                 let messageContent = '';
 
+                // Try multiple ways to extract content
                 if (typeof message.content === 'string') {
                   messageContent = message.content;
+                } else if (message.content && typeof message.content === 'object') {
+                  // Content might be an object with text property
+                  const contentObj = message.content as { text?: string; [key: string]: unknown };
+                  messageContent = contentObj.text || String(contentObj) || '';
                 } else if (message.parts && Array.isArray(message.parts)) {
                   // Handle parts array structure
                   const textPart = message.parts.find((part: { type?: string; text?: string }) =>
                     part.type === 'text' && part.text
                   );
                   messageContent = textPart?.text || '';
+                  
+                  // If no text part found, try to get any text from parts
+                  if (!messageContent) {
+                    const anyTextPart = message.parts.find((part: { text?: string }) => part.text);
+                    messageContent = anyTextPart?.text || '';
+                  }
+                } else if (message.text) {
+                  // Direct text property
+                  messageContent = message.text;
                 } else {
-                  messageContent = '';
+                  // Last resort: try to stringify the content
+                  messageContent = String(message.content || '');
+                }
+
+                // Log for debugging if content is empty
+                if (!messageContent && process.env.NODE_ENV === 'development') {
+                  console.warn('Empty message content:', {
+                    message,
+                    content: message.content,
+                    parts: message.parts,
+                    text: (message as { text?: string }).text
+                  });
                 }
 
                 // Ensure we have valid content
-                if (!messageContent) {
+                if (!messageContent || messageContent.trim() === '') {
                   return null;
                 }
 
@@ -128,7 +162,8 @@ const Home = () => {
       <form onSubmit={(e) => {
         e.preventDefault()
         const textToSend = input.trim()
-        if (textToSend) {
+        if (textToSend && !isLoading) {
+          console.log('Sending message:', textToSend)
           sendMessage({ text: textToSend })
           setInput('')
         }
