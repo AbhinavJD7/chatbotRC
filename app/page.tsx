@@ -173,7 +173,7 @@ const Home = () => {
           className="question-box"
           onChange={handleInputChange}
           value={input}
-          placeholder="Ask me something about RapidClaims..."
+          placeholder="Ask about RapidClaims..."
           disabled={isLoading}
         />
         <button type="submit" disabled={isLoading || !input.trim()}>
