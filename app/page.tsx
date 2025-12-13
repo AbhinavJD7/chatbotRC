@@ -7,19 +7,30 @@ import Bubble from "./components/Bubble"
 import PromptSuggestionsRow from "./components/PromptSuggestionsRow"
 import LoadingBubbles from "./components/LoadingBubbles"
 
+// Type definition for message structure from useChat
+interface ChatMessage {
+  id?: string;
+  role?: 'user' | 'assistant';
+  content?: string | { text?: string;[key: string]: unknown };
+  text?: string;
+  parts?: Array<{ type?: string; text?: string;[key: string]: unknown }>;
+  [key: string]: unknown;
+}
+
 const Home = () => {
-  // Explicitly specify the API endpoint
   // useChat v2.0.15 doesn't provide input/handleInputChange - manage it manually
-  const { messages, sendMessage, status, error, stop } = useChat({
-    api: '/api/chat',
+  // Default endpoint is /api/chat, so no need to specify it
+  const { messages, sendMessage, status, error } = useChat({
     onError: (error) => {
       console.error('useChat error:', error);
     },
     onFinish: (message) => {
       console.log('Message finished:', message);
-      console.log('Message content:', message.content);
-      console.log('Message parts:', message.parts);
-      console.log('Message role:', message.role);
+      // Access message properties safely with type assertion
+      const msg = message as ChatMessage;
+      console.log('Message content:', msg.content);
+      console.log('Message parts:', msg.parts);
+      console.log('Message role:', msg.role);
     }
   })
 
@@ -96,43 +107,45 @@ const Home = () => {
             <div className="messages-container">
               {messages.map((message) => {
                 // Handle different message formats from useChat v2.0.15
-                // Messages from toUIMessageStreamResponse can have different structures
+                // Use type assertion to access properties safely
+                const msg = message as ChatMessage;
                 let messageContent = '';
 
                 // Try multiple ways to extract content
-                if (typeof message.content === 'string') {
-                  messageContent = message.content;
-                } else if (message.content && typeof message.content === 'object') {
+                if (typeof msg.content === 'string') {
+                  messageContent = msg.content;
+                } else if (msg.content && typeof msg.content === 'object') {
                   // Content might be an object with text property
-                  const contentObj = message.content as { text?: string; [key: string]: unknown };
+                  const contentObj = msg.content as { text?: string;[key: string]: unknown };
                   messageContent = contentObj.text || String(contentObj) || '';
-                } else if (message.parts && Array.isArray(message.parts)) {
+                } else if (msg.parts && Array.isArray(msg.parts)) {
                   // Handle parts array structure
-                  const textPart = message.parts.find((part: { type?: string; text?: string }) =>
+                  type MessagePart = { type?: string; text?: string;[key: string]: unknown };
+                  const textPart = msg.parts.find((part: MessagePart) =>
                     part.type === 'text' && part.text
                   );
                   messageContent = textPart?.text || '';
-                  
+
                   // If no text part found, try to get any text from parts
                   if (!messageContent) {
-                    const anyTextPart = message.parts.find((part: { text?: string }) => part.text);
+                    const anyTextPart = msg.parts.find((part: MessagePart) => part.text);
                     messageContent = anyTextPart?.text || '';
                   }
-                } else if (message.text) {
+                } else if (msg.text) {
                   // Direct text property
-                  messageContent = message.text;
+                  messageContent = msg.text;
                 } else {
                   // Last resort: try to stringify the content
-                  messageContent = String(message.content || '');
+                  messageContent = String(msg.content || '');
                 }
 
                 // Log for debugging if content is empty
                 if (!messageContent && process.env.NODE_ENV === 'development') {
                   console.warn('Empty message content:', {
-                    message,
-                    content: message.content,
-                    parts: message.parts,
-                    text: (message as { text?: string }).text
+                    message: msg,
+                    content: msg.content,
+                    parts: msg.parts,
+                    text: msg.text
                   });
                 }
 
@@ -143,11 +156,11 @@ const Home = () => {
 
                 return (
                   <Bubble
-                    key={message.id || `msg-${Math.random()}`}
+                    key={msg.id || `msg-${Math.random()}`}
                     message={{
                       content: messageContent,
-                      role: (message.role || 'user') as 'user' | 'assistant',
-                      id: message.id
+                      role: (msg.role || 'user') as 'user' | 'assistant',
+                      id: msg.id
                     }}
                   />
                 );
