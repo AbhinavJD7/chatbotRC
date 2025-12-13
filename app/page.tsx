@@ -63,7 +63,7 @@ const Home = () => {
   return (
     <main>
       <div className="header-section">
-        <Image src={RClogo} width={250} alt="RapidClaims Logo" />
+        <Image src={RClogo} width={250} alt="RapidClaims Logo" className="logo-image" />
         {!noMessages && (
           <div className="chat-header-info">
             <span className="chat-status-indicator"></span>
@@ -75,22 +75,10 @@ const Home = () => {
         {noMessages ? (
           <>
             <div className="starter-text">
-              <h2 style={{
-                fontSize: '28px',
-                fontWeight: 700,
-                color: '#1a202c',
-                marginBottom: '20px',
-                letterSpacing: '0.3px',
-                lineHeight: '1.3'
-              }}>
+              <h2 className="starter-heading">
                 30-Day Revenue Transformation
               </h2>
-              <p style={{
-                margin: 0,
-                fontSize: '17px',
-                lineHeight: '1.85',
-                color: '#4a5568'
-              }}>
+              <p className="starter-paragraph">
                 Our AI platform works alongside your team to transform revenue cycle operations
                 while seamlessly integrating with your existing systems—delivering measurable
                 results in just 30 days. We help healthcare providers cut denial rates by up to 42%,
