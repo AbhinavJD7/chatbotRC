@@ -7,8 +7,13 @@ A Next.js chatbot application for RapidClaims that uses RAG (Retrieval-Augmented
 - 🤖 AI-powered chatbot using Google Gemini
 - 🔍 Vector similarity search with Astra DB
 - 📚 RAG (Retrieval-Augmented Generation) architecture
-- 💬 Streaming responses
-- 🎨 Modern chat interface
+- 💬 Streaming responses with real-time updates
+- 🎨 Modern, responsive chat interface
+- 📱 Fully optimized for mobile devices
+- 🔄 New Chat button to reset conversations
+- 💡 Prompt suggestions for quick interactions
+- 🎯 Perfectly centered UI with enhanced positioning
+- ✨ Clean message bubbles without avatar prefixes
 
 ## Prerequisites
 
@@ -128,16 +133,24 @@ chatbotRC/
 │   ├── api/
 │   │   └── chat/
 │   │       └── route.ts          # API route for chat (RAG implementation)
+│   ├── assets/
+│   │   ├── RClogo.png            # RapidClaims logo
+│   │   └── chatbot_back2.jpg     # Background image (if used)
 │   ├── components/
-│   │   ├── Bubble.tsx            # Message bubble component
-│   │   ├── LoadingBubbles.tsx    # Loading indicator
-│   │   ├── PromptSuggestionsButton.tsx
-│   │   └── PromptSuggestionsRow.tsx
-│   ├── page.tsx                  # Main chat interface
-│   └── layout.tsx
+│   │   ├── Bubble.tsx            # Message bubble component with markdown support
+│   │   ├── LoadingBubbles.tsx    # Loading indicator for AI responses
+│   │   ├── PromptSuggestionsButton.tsx  # Individual prompt button
+│   │   └── PromptSuggestionsRow.tsx     # Row of prompt suggestion buttons
+│   ├── global.css                 # Global styles and responsive design
+│   ├── layout.tsx                # Root layout with metadata
+│   └── page.tsx                   # Main chat interface component
 ├── scripts/
-│   └── loadDB.ts                 # Database seeding script
-└── .env                          # Environment variables (create this)
+│   ├── loadDB.ts                 # Database seeding script (scrapes website)
+│   └── listModels.ts             # Script to list available Gemini models
+├── .env                          # Environment variables (create this)
+├── next.config.js                # Next.js configuration
+├── package.json                  # Dependencies and scripts
+└── tsconfig.json                 # TypeScript configuration
 ```
 
 ## Environment Variables
@@ -185,22 +198,107 @@ chatbotRC/
 
 If you see "collection already exists", the script will skip creation and continue. If you want to start fresh or fix dimension issues, delete the collection as described above.
 
+### Build Errors
+
+**Error:** `routes-manifest.json` not found or build cache issues
+
+**Solution:**
+```bash
+rm -rf .next
+npm run build
+```
+
+This clears the build cache and regenerates all build files.
+
+### Development Server Issues
+
+If you encounter errors when running `npm run dev`:
+
+1. Stop the server (Ctrl+C)
+2. Clean the build cache: `rm -rf .next`
+3. Restart: `npm run dev`
+
+### Model Availability
+
+If you see errors about unavailable models, run:
+```bash
+npm run list-models
+```
+
+This will show all available Gemini models in your account. The application automatically tries multiple models in sequence until one works.
+
 ## Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run start` - Start production server
 - `npm run seed` - Scrape website and populate database
+- `npm run seed:test` - Seed database with test mode (only 3 chunks)
+- `npm run list-models` - List available Gemini models in your account
 - `npm run lint` - Run ESLint
 
 ## Tech Stack
 
-- **Framework**: Next.js 15 (App Router)
-- **AI**: Google Gemini (`gemini-1.5-flash`)
+- **Framework**: Next.js 15.4.10 (App Router)
+- **AI SDK**: Vercel AI SDK v5.0.15
+- **AI Models**: Google Gemini (auto-fallback: `gemini-2.5-flash`, `gemini-2.0-flash`, etc.)
 - **Vector DB**: DataStax Astra DB
-- **Embeddings**: Google Generative AI (`embedding-001`)
+- **Embeddings**: Google Generative AI (`embedding-001` - 768 dimensions)
 - **Web Scraping**: Puppeteer
+- **UI Libraries**: React 18, React Markdown
 - **Language**: TypeScript
+
+## UI/UX Features
+
+### Responsive Design
+- **Desktop**: Centered card layout with optimal spacing
+- **Mobile**: Full-screen optimized experience with touch-friendly buttons
+- **Tablet**: Adaptive layout that works on all screen sizes
+
+### Chat Features
+- **Streaming Responses**: Real-time message streaming for better UX
+- **New Chat Button**: Easily reset conversations and return to main menu
+- **Prompt Suggestions**: Quick-start prompts for common questions
+- **Loading States**: Visual feedback during AI processing
+- **Error Handling**: User-friendly error messages with retry options
+
+### Visual Design
+- **Modern Gradient Background**: RapidClaims-inspired purple-blue gradient
+- **Clean Message Bubbles**: User messages (red) and assistant messages (white) with proper alignment
+- **Smooth Animations**: Slide-in animations for messages
+- **Markdown Support**: Rich text formatting in assistant responses
+
+## Deployment
+
+### Vercel Deployment
+
+This project is ready for deployment on Vercel:
+
+1. **Push to GitHub**: Ensure your code is pushed to a GitHub repository
+2. **Connect to Vercel**: Import your repository in Vercel
+3. **Add Environment Variables**: Set all required environment variables in Vercel project settings:
+   - `ASTRA_DB_NAMESPACE`
+   - `ASTRA_DB_COLLECTION`
+   - `ASTRA_DB_API_ENDPOINT`
+   - `ASTRA_DB_APPLICATION_TOKEN`
+   - `GEMINI_API_KEY` or `GOOGLE_GENERATIVE_AI_API_KEY`
+4. **Deploy**: Vercel will automatically build and deploy your application
+
+### Build Status
+✅ Production build tested and verified
+✅ All TypeScript errors resolved
+✅ Mobile-responsive design implemented
+✅ Optimized for performance
+
+## Recent Updates
+
+- ✨ Added "New Chat" button for easy conversation reset
+- 🎨 Enhanced UI positioning and centering
+- 📱 Improved mobile responsiveness and touch targets
+- 🧹 Removed avatar prefixes ("U" and "RC") for cleaner messages
+- 🔧 Fixed production build issues
+- 🎯 Better message spacing and alignment
+- 📐 Perfect vertical and horizontal centering
 
 ## License
 
