@@ -12,7 +12,8 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    min-height: -webkit-fill-available; /* iOS Safari fix */
+    min-height: -webkit-fill-available;
+    /* iOS Safari fix */
     /* RapidClaims-inspired dark purple gradient */
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #533483 75%, #1a1a2e 100%);
     background-attachment: fixed;
@@ -110,6 +111,49 @@ main>img:hover,
     background: #dc2626;
     border-radius: 50%;
     animation: pulse 2s infinite;
+}
+
+/* New Chat Button */
+.new-chat-button {
+    margin-top: 12px;
+    padding: 10px 24px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 2px solid rgba(83, 52, 131, 0.3);
+    border-radius: 20px;
+    background: white;
+    color: #533483;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.new-chat-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #533483 0%, #1a1a2e 100%);
+    color: white;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(83, 52, 131, 0.4);
+}
+
+.new-chat-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.new-chat-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.new-chat-button span {
+    position: relative;
 }
 
 @keyframes pulse {
@@ -611,7 +655,6 @@ form>div[style*="color: red"] {
         height: -webkit-fill-available;
         max-height: 100vh;
         padding: 12px;
-        padding-bottom: max(12px, env(safe-area-inset-bottom));
         border-radius: 0;
         box-shadow: none;
         border: none;
@@ -630,6 +673,15 @@ form>div[style*="color: red"] {
     .chat-header-info {
         font-size: 11px;
         padding: 6px 12px;
+    }
+
+    .new-chat-button {
+        margin-top: 10px;
+        padding: 12px 20px;
+        font-size: 12px;
+        min-height: 44px;
+        /* Better touch target */
+        border-radius: 16px;
     }
 
     .bubble {
@@ -674,37 +726,33 @@ form>div[style*="color: red"] {
 
     form {
         padding: 12px 8px;
-        padding-bottom: max(12px, env(safe-area-inset-bottom));
         gap: 8px;
         margin-top: 12px;
-        margin-bottom: 0;
         border-radius: 12px;
         flex-shrink: 0;
     }
 
     input.question-box {
-        padding: 14px 12px;
-        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 14px 16px;
+        font-size: 16px;
+        /* Prevents zoom on iOS */
         border-radius: 12px;
-        min-height: 48px; /* Better touch target */
-        width: 100%;
-        box-sizing: border-box;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        min-height: 48px;
+        /* Better touch target */
     }
 
     button[type="submit"] {
-        padding: 14px 20px;
-        font-size: 13px;
-        min-width: 85px;
-        min-height: 48px; /* Better touch target */
+        padding: 14px 24px;
+        font-size: 14px;
+        min-width: 90px;
+        min-height: 48px;
+        /* Better touch target */
         border-radius: 12px;
-        flex-shrink: 0;
-        white-space: nowrap;
     }
 
     button[type="submit"]::after {
-        display: none; /* Hide arrow on mobile for cleaner look */
+        display: none;
+        /* Hide arrow on mobile for cleaner look */
     }
 
     .prompt-suggestion-row {
@@ -719,7 +767,8 @@ form>div[style*="color: red"] {
         width: 100%;
         padding: 16px 20px;
         font-size: 15px;
-        min-height: 48px; /* Better touch target */
+        min-height: 48px;
+        /* Better touch target */
         border-radius: 12px;
         text-align: left;
     }
@@ -767,12 +816,11 @@ form>div[style*="color: red"] {
     }
 
     form {
-        padding: 10px 6px max(10px, env(safe-area-inset-bottom));
-        padding-bottom: max(10px, env(safe-area-inset-bottom));
+        padding: 10px 6px;
     }
 
     input.question-box {
-        padding: 12px 10px;
+        padding: 12px 14px;
         font-size: 16px;
     }
 

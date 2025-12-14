@@ -20,7 +20,7 @@ interface ChatMessage {
 const Home = () => {
   // useChat v2.0.15 doesn't provide input/handleInputChange - manage it manually
   // Default endpoint is /api/chat, so no need to specify it
-  const { messages, sendMessage, status, error } = useChat({
+  const { messages, sendMessage, status, error, setMessages } = useChat({
     onError: (error) => {
       console.error('useChat error:', error);
     },
@@ -60,15 +60,37 @@ const Home = () => {
     setInput(e.target.value)
   };
 
+  // Handle new chat - reset to main menu
+  const handleNewChat = () => {
+    // Try to use setMessages if available, otherwise reload the page
+    if (setMessages && typeof setMessages === 'function') {
+      setMessages([]);
+    } else {
+      // Fallback: reload the page to reset
+      window.location.reload();
+    }
+    setInput('');
+  };
+
   return (
     <main>
       <div className="header-section">
         <Image src={RClogo} width={250} alt="RapidClaims Logo" className="logo-image" />
         {!noMessages && (
-          <div className="chat-header-info">
-            <span className="chat-status-indicator"></span>
-            <span className="chat-status-text">AI Assistant Active</span>
-          </div>
+          <>
+            <div className="chat-header-info">
+              <span className="chat-status-indicator"></span>
+              <span className="chat-status-text">AI Assistant Active</span>
+            </div>
+            <button
+              onClick={handleNewChat}
+              className="new-chat-button"
+              disabled={isLoading}
+              aria-label="Start new chat"
+            >
+              <span>New Chat</span>
+            </button>
+          </>
         )}
       </div>
       <section className={noMessages ? "" : "populated"}>
@@ -173,7 +195,7 @@ const Home = () => {
           className="question-box"
           onChange={handleInputChange}
           value={input}
-          placeholder="Ask about RapidClaims..."
+          placeholder="Ask me something about RapidClaims..."
           disabled={isLoading}
         />
         <button type="submit" disabled={isLoading || !input.trim()}>
