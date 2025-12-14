@@ -23,6 +23,14 @@ body {
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
+/* Ensure proper centering on all screen sizes */
+html {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 /* Add subtle animated background pattern */
 body::before {
     content: '';
@@ -56,12 +64,19 @@ main {
     overflow: hidden;
     position: relative;
     z-index: 1;
+    margin: auto;
+    /* Perfect centering */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 /* Mobile viewport height fix */
 @supports (-webkit-touch-callout: none) {
     main {
         height: -webkit-fill-available;
+        max-height: 95vh;
     }
 }
 
@@ -71,9 +86,10 @@ main {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     position: relative;
     flex-shrink: 0;
+    padding-top: 8px;
 }
 
 main>img,
@@ -178,17 +194,23 @@ section {
     overflow: hidden;
     padding: 20px 0;
     min-height: 0;
+    /* Better vertical centering when empty */
+    justify-content: center;
 }
 
 section:not(.populated) {
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 20px 16px;
+    /* Center content vertically when no messages */
+    display: flex;
+    flex-direction: column;
 }
 
 section.populated {
+    justify-content: flex-start;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 20px 16px;
@@ -198,8 +220,9 @@ section.populated {
 .messages-container {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 12px;
     padding-bottom: 8px;
+    width: 100%;
 }
 
 /* Custom scrollbar */
@@ -247,7 +270,7 @@ section:not(.populated)::-webkit-scrollbar-thumb:hover {
     color: #2d3748;
     text-align: center;
     max-width: 900px;
-    margin: 0 auto 40px auto;
+    margin: 0 auto;
     font-weight: 400;
     letter-spacing: 0.2px;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
@@ -257,6 +280,8 @@ section:not(.populated)::-webkit-scrollbar-thumb:hover {
     position: relative;
     overflow: visible;
     width: 100%;
+    /* Better spacing */
+    margin-bottom: 24px;
 }
 
 .starter-text::before {
@@ -293,7 +318,7 @@ section:not(.populated)::-webkit-scrollbar-thumb:hover {
 
 /* Chat Bubbles */
 .bubble {
-    margin: 12px 16px;
+    margin: 0 16px;
     padding: 16px 20px;
     font-size: 15px;
     line-height: 1.6;
@@ -304,6 +329,7 @@ section:not(.populated)::-webkit-scrollbar-thumb:hover {
     position: relative;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    align-self: flex-start;
 }
 
 .bubble:hover {
@@ -329,19 +355,21 @@ section:not(.populated)::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
     color: white;
     margin-left: auto;
-    margin-right: 0;
+    margin-right: 16px;
     text-align: left;
     box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    align-self: flex-end;
 }
 
 .bubble.assistant {
     border-radius: 20px 20px 20px 4px;
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
     color: #1a202c;
-    margin-left: 0;
+    margin-left: 16px;
     margin-right: auto;
     border: 1px solid rgba(83, 52, 131, 0.15);
     box-shadow: 0 4px 12px rgba(83, 52, 131, 0.1);
+    align-self: flex-start;
 }
 
 .user-message-text {
@@ -466,7 +494,8 @@ form {
     border-radius: 16px;
     border: 1px solid rgba(83, 52, 131, 0.15);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    margin-top: 20px;
+    margin-top: auto;
+    flex-shrink: 0;
 }
 
 input.question-box {
@@ -658,6 +687,11 @@ form>div[style*="color: red"] {
         border-radius: 0;
         box-shadow: none;
         border: none;
+        /* Maintain centering on mobile */
+        position: fixed;
+        top: 0;
+        left: 0;
+        transform: none;
     }
 
     .header-section {
@@ -718,10 +752,12 @@ form>div[style*="color: red"] {
 
     section:not(.populated) {
         padding: 12px 8px !important;
+        justify-content: center;
     }
 
     section.populated {
         padding: 12px 8px !important;
+        justify-content: flex-start;
     }
 
     form {
