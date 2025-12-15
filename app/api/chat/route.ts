@@ -155,9 +155,36 @@ export async function POST(req: Request) {
         });
         const documents = await cursor.toArray();
 
-        // Join the documents as text with proper filtering
+        // Filter and process documents
         if (documents && Array.isArray(documents)) {
-          docContext = documents
+          // Filter documents by similarity score if available
+          // Note: Astra DB may return similarity scores in different formats
+          const MIN_SIMILARITY_THRESHOLD = 0.5; // Adjust based on your needs (0-1 scale)
+
+          interface DocumentWithSimilarity {
+            text?: string;
+            content?: string;
+            $similarity?: number;
+            similarity?: number;
+            [key: string]: unknown;
+          }
+
+          const relevantDocs = documents.filter((doc: DocumentWithSimilarity) => {
+            // Check for similarity score in various possible formats
+            if (doc.$similarity !== undefined && doc.$similarity < MIN_SIMILARITY_THRESHOLD) {
+              return false;
+            }
+            if (doc.similarity !== undefined && doc.similarity < MIN_SIMILARITY_THRESHOLD) {
+              return false;
+            }
+            // If no similarity score, include the document (Astra DB may not always provide it)
+            return true;
+          });
+
+          console.log(`Filtered to ${relevantDocs.length} relevant documents (from ${documents.length} total)`);
+
+          // Join the documents as text with proper filtering
+          docContext = relevantDocs
             .map((doc: { text?: string; content?: string;[key: string]: unknown }) => {
               // Handle different document structures
               if (typeof doc === 'object' && doc !== null) {
@@ -171,6 +198,10 @@ export async function POST(req: Request) {
         }
 
         console.log(`Retrieved ${documents?.length || 0} relevant documents`);
+        console.log(`Context length: ${docContext.length} characters`);
+        if (docContext.length < 50) {
+          console.warn('⚠️ Very short context retrieved - may not have relevant information');
+        }
       }
     } catch (dbError) {
       console.error("Error querying Astra DB:", dbError);
@@ -179,16 +210,29 @@ export async function POST(req: Request) {
       docContext = "";
     }
 
-    // System prompt
-    const systemPrompt = `You are an AI assistant who is an expert on RapidClaims and the Revenue Cycle Management (RCM) industry.
-Use the below context to augment what you know about RapidClaims. The context will provide you with the most recent page data from the official RapidClaims website, internal documents, case studies, and press releases.
-If the context doesn't include the information you need, answer based on your existing knowledge and don't mention the source of your information or what the context does or doesn't include.
-Format responses using markdown where applicable and don't return images.
+    // Check for empty context
+    if (!docContext || docContext.trim().length === 0) {
+      console.warn('⚠️ No context retrieved from database - responses will be limited');
+    }
+
+    // System prompt - STRICT RAG: Only use provided context
+    const systemPrompt = `You are an AI assistant for RapidClaims, a Revenue Cycle Management (RCM) company.
+    
+CRITICAL INSTRUCTIONS:
+- You MUST ONLY answer questions using the information provided in the context below
+- If the context does NOT contain the information needed to answer the question, you MUST say: "I don't have that information in my knowledge base. Could you please rephrase your question or ask about something else related to RapidClaims?"
+- DO NOT use any knowledge outside of the provided context
+- DO NOT make up or infer information that isn't explicitly stated in the context
+- If asked about topics unrelated to RapidClaims or RCM, politely redirect: "I'm specialized in answering questions about RapidClaims and Revenue Cycle Management. How can I help you with that?"
+
+The context below contains information from the official RapidClaims website, internal documents, case studies, and press releases:
 --------------
 START CONTEXT
-${docContext}
+${docContext || 'No context available.'}
 END CONTEXT
---------------`;
+--------------
+
+Format your responses using markdown where applicable. Do not return images.`;
 
     // Call streamText with proper message format
     console.log('Calling streamText...');
