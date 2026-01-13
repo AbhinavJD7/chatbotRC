@@ -865,6 +865,7 @@ form>div[style*="color: red"] {
         min-width: 80px;
     }
 }
+
 /* Smooth transitions */
 * {
     transition: background-color 0.2s ease, color 0.2s ease;
