@@ -37,8 +37,18 @@ const Home = () => {
   // Manage input state manually (useChat v2.0.15 doesn't provide input)
   const [input, setInput] = useState('')
 
+  // Track if we're in booking flow to prevent sending messages
+  const [isInBookingFlow, setIsInBookingFlow] = useState(false)
+
   const noMessages = !messages || messages.length === 0
   const isLoading = status === 'streaming' || status === 'submitted'
+
+  // Detect booking intent before sending
+  const detectBookingIntent = (text: string): boolean => {
+    const BOOKING_KEYWORDS = ['book', 'meeting', 'schedule', 'demo', 'appointment', 'call', 'talk', 'speak'];
+    const lowerText = text.toLowerCase();
+    return BOOKING_KEYWORDS.some(keyword => lowerText.includes(keyword));
+  };
 
   // Auto-scroll to bottom when new messages arrive
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -159,18 +169,30 @@ const Home = () => {
                   });
                 }
 
-                // Ensure we have valid content
-                if (!messageContent || messageContent.trim() === '') {
+                // Check if this message should trigger booking flow
+                // This happens when user sends a booking-related message
+                const isBookingFlow = (msg as { bookingFlow?: boolean }).bookingFlow === true;
+                const cleanContent = messageContent;
+
+                // Ensure we have valid content or booking flow
+                if ((!cleanContent || cleanContent.trim() === '') && !isBookingFlow) {
                   return null;
                 }
+
+                // Booking flow is handled by the bookingFlow flag in the message
 
                 return (
                   <Bubble
                     key={msg.id || `msg-${Math.random()}`}
                     message={{
-                      content: messageContent,
+                      content: cleanContent,
                       role: (msg.role || 'user') as 'user' | 'assistant',
-                      id: msg.id
+                      id: msg.id,
+                      bookingFlow: isBookingFlow
+                    }}
+                    onBookingComplete={(data) => {
+                      console.log('Booking completed:', data);
+                      setIsInBookingFlow(false);
                     }}
                   />
                 );
@@ -185,7 +207,49 @@ const Home = () => {
       <form onSubmit={(e) => {
         e.preventDefault()
         const textToSend = input.trim()
-        if (textToSend && !isLoading) {
+        if (textToSend && !isLoading && !isInBookingFlow) {
+          // Check for booking intent before sending
+          if (detectBookingIntent(textToSend)) {
+            // Add user and assistant messages manually without calling API
+            if (setMessages) {
+              const userMsgId = `user-${Date.now()}`;
+              const bookingMsgId = `booking-${Date.now()}`;
+
+              setMessages((prevMessages) => {
+                const newMessages = [...prevMessages];
+
+                // Add user message manually
+                const userMessage: ChatMessage = {
+                  id: userMsgId,
+                  role: 'user',
+                  parts: [{
+                    type: 'text',
+                    text: textToSend
+                  }]
+                };
+                newMessages.push(userMessage as typeof prevMessages[0]);
+
+                // Add assistant booking message
+                const bookingMessage: ChatMessage = {
+                  id: bookingMsgId,
+                  role: 'assistant',
+                  parts: [{
+                    type: 'text',
+                    text: "I'd be happy to help you schedule a meeting! Let me collect a few details."
+                  }],
+                  bookingFlow: true
+                };
+                newMessages.push(bookingMessage as typeof prevMessages[0]);
+
+                return newMessages;
+              });
+
+              setIsInBookingFlow(true);
+            }
+            setInput('');
+            return;
+          }
+
           console.log('Sending message:', textToSend)
           sendMessage({ text: textToSend })
           setInput('')

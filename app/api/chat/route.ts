@@ -124,6 +124,9 @@ export async function POST(req: Request) {
       );
     }
 
+    // Note: Booking intent detection is handled on the client side for better UX
+    // The client will show booking UI directly when booking keywords are detected
+
     // Generate embedding for the latest message
     let embedding;
     try {
