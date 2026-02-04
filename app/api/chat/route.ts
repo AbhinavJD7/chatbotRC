@@ -63,7 +63,7 @@ setInterval(async () => {
   try {
     // Ping database by executing a simple find operation
     const collection = await db.collection(ASTRA_DB_COLLECTION);
-    await collection.findOne({}, { limit: 1 });
+    await collection.findOne({});
     console.log("Database heartbeat sent successfully at", new Date().toISOString());
   } catch (error) {
     console.error("Database heartbeat failed:", error);
