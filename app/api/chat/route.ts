@@ -61,7 +61,9 @@ const db = client.db(ASTRA_DB_API_ENDPOINT, { namespace: ASTRA_DB_NAMESPACE });
 // Database heartbeat - pings every 12 hours to keep connection alive
 setInterval(async () => {
   try {
-    await db.admin().ping();
+    // Ping database by executing a simple find operation
+    const collection = await db.collection(ASTRA_DB_COLLECTION);
+    await collection.findOne({}, { limit: 1 });
     console.log("Database heartbeat sent successfully at", new Date().toISOString());
   } catch (error) {
     console.error("Database heartbeat failed:", error);
