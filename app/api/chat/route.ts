@@ -58,6 +58,18 @@ const embeddings = new GoogleGenerativeAIEmbeddings({
 const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
 const db = client.db(ASTRA_DB_API_ENDPOINT, { namespace: ASTRA_DB_NAMESPACE });
 
+// Database heartbeat - pings every 12 hours to keep connection alive
+setInterval(async () => {
+  try {
+    await db.admin().ping();
+    console.log("Database heartbeat sent successfully at", new Date().toISOString());
+  } catch (error) {
+    console.error("Database heartbeat failed:", error);
+  }
+}, 12 * 60 * 60 * 1000);
+
+console.log("Database heartbeat started - will ping every 12 hours");
+
 // Note: We'll try multiple models dynamically in the POST handler
 // to find one that's available in the user's API account
 
