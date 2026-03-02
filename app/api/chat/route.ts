@@ -50,7 +50,7 @@ if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY && apiKey) {
 }
 
 const embeddings = new GoogleGenerativeAIEmbeddings({
-  modelName: "text-embedding-004",
+  modelName: "models/gemini-embedding-001",
   apiKey: apiKey,
 });
 

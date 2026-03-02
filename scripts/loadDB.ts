@@ -52,7 +52,7 @@ const createCollection = async (similarityMetric: SimilarityMetric = "dot_produc
     try {
         const res = await db.createCollection(ASTRA_DB_COLLECTION, {
             vector: {
-                // Gemini's 'text-embedding-004' model produces 768-dimensional vectors
+                // Gemini's 'models/gemini-embedding-001' model produces 768-dimensional vectors
                 dimension: 768,
                 metric: similarityMetric
             }
