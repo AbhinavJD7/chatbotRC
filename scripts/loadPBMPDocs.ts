@@ -26,7 +26,7 @@ if (!ASTRA_DB_NAMESPACE || !ASTRA_DB_API_ENDPOINT ||
 // Initialize the Gemini Embedding model
 const geminiEmbeddings = new GoogleGenerativeAIEmbeddings({
     apiKey: GEMINI_API_KEY,
-    model: "embedding-001",
+    model: "text-embedding-004",
 })
 
 // ===================================
@@ -57,7 +57,7 @@ const createCollection = async (similarityMetric: SimilarityMetric = "cosine") =
     try {
         await db.createCollection(PBMP_COLLECTION, {
             vector: {
-                dimension: 768, // Gemini embedding-001 produces 768-dimensional vectors
+                dimension: 768, // Gemini text-embedding-004 produces 768-dimensional vectors
                 metric: similarityMetric,
             }
         })
