@@ -57,7 +57,7 @@ const createCollection = async (similarityMetric: SimilarityMetric = "cosine") =
     try {
         await db.createCollection(PBMP_COLLECTION, {
             vector: {
-                dimension: 768, // Gemini models/gemini-embedding-001 produces 768-dimensional vectors
+                dimension: 3072, // Gemini models/gemini-embedding-001 produces 3072-dimensional vectors
                 metric: similarityMetric,
             }
         })

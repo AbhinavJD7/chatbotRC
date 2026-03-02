@@ -25,10 +25,10 @@ if (!ASTRA_DB_NAMESPACE || !ASTRA_DB_COLLECTION || !ASTRA_DB_API_ENDPOINT ||
 }
 
 // Initialize the Gemini Embedding model
-// The 'embedding-001' model produces 768-dimensional vectors
+// The 'models/gemini-embedding-001' model produces 768-dimensional vectors
 const geminiEmbeddings = new GoogleGenerativeAIEmbeddings({
     apiKey: GEMINI_API_KEY,
-    model: "embedding-001",
+    model: "models/gemini-embedding-001",
 })
 
 
@@ -52,8 +52,8 @@ const createCollection = async (similarityMetric: SimilarityMetric = "dot_produc
     try {
         const res = await db.createCollection(ASTRA_DB_COLLECTION, {
             vector: {
-                // Gemini's 'models/gemini-embedding-001' model produces 768-dimensional vectors
-                dimension: 768,
+                // Gemini's 'models/gemini-embedding-001' model produces 3072-dimensional vectors
+                dimension: 3072,
                 metric: similarityMetric
             }
         })
@@ -62,7 +62,7 @@ const createCollection = async (similarityMetric: SimilarityMetric = "dot_produc
         if (error?.message?.includes('already exists') || error?.message?.toLowerCase().includes('already exists')) {
             console.log(`\n⚠️  Collection '${ASTRA_DB_COLLECTION}' already exists.`)
             console.log(`   If you're getting dimension mismatch errors, you need to delete this collection`)
-            console.log(`   in Astra DB and run this script again to recreate it with 768 dimensions.\n`)
+            console.log(`   in Astra DB and run this script again to recreate it with 3072 dimensions.\n`)
         } else {
             throw error
         }
