@@ -58,20 +58,8 @@ const embeddings = new GoogleGenerativeAIEmbeddings({
 const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
 const db = client.db(ASTRA_DB_API_ENDPOINT, { namespace: ASTRA_DB_NAMESPACE });
 
-// Database heartbeat - pings every 12 hours to keep connection alive
-setInterval(async () => {
-  try {
-    // Ping database by executing a simple find operation
-    const collection = await db.collection(ASTRA_DB_COLLECTION);
-    await collection.findOne({});
-    console.log("Database heartbeat sent successfully at", new Date().toISOString());
-  } catch (error) {
-    console.error("Database heartbeat failed:", error);
-  }
-}, 12 * 60 * 60 * 1000);
-
-console.log("Database heartbeat started - will ping every 12 hours");
-
+// Note: DB keep-alive is handled by the Vercel cron job at /api/db-ping (pings every 12 hours)
+// See vercel.json for the cron schedule
 // Note: We'll try multiple models dynamically in the POST handler
 // to find one that's available in the user's API account
 
