@@ -84,23 +84,61 @@ const Home = () => {
 
   return (
     <main>
-      <div className="header-section">
-        <Image src={RClogo} width={250} alt="RapidClaims Logo" className="logo-image" />
+      <div className="header-section" style={{ 
+          display: 'flex', 
+          flexDirection: 'row',
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          width: '100%',
+          paddingBottom: '20px',
+          borderBottom: '1px solid #e5e7eb' 
+      }}>
+        <Image src={RClogo} width={180} alt="RapidClaims Logo" />
+        
+        {noMessages && (
+          <div style={{ 
+            color: '#FF3B30', 
+            fontSize: '13px', 
+            fontWeight: 700, 
+            letterSpacing: '1px',
+            textTransform: 'uppercase',
+            marginRight: '10px',
+            padding: '8px 18px',
+            background: 'rgba(255, 59, 48, 0.08)',
+            borderRadius: '24px',
+            border: '1px solid rgba(255, 59, 48, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 2px 8px rgba(255, 59, 48, 0.05)'
+          }}>
+            <span style={{ 
+              width: '6px', 
+              height: '6px', 
+              background: '#FF3B30', 
+              borderRadius: '50%',
+              display: 'inline-block'
+            }}></span>
+            RCM Simplified at Scale
+          </div>
+        )}
+
         {!noMessages && (
-          <>
-            <div className="chat-header-info">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div className="chat-header-info" style={{ margin: 0 }}>
               <span className="chat-status-indicator"></span>
               <span className="chat-status-text">AI Assistant Active</span>
             </div>
             <button
               onClick={handleNewChat}
               className="new-chat-button"
+              style={{ margin: 0 }}
               disabled={isLoading}
               aria-label="Start new chat"
             >
               <span>New Chat</span>
             </button>
-          </>
+          </div>
         )}
       </div>
       <section className={noMessages ? "" : "populated"}>

@@ -14,8 +14,8 @@ body {
     min-height: 100vh;
     min-height: -webkit-fill-available;
     /* iOS Safari fix */
-    /* RapidClaims-inspired dark purple gradient */
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #533483 75%, #1a1a2e 100%);
+    background: #f9fafb;
+    color: #111827;
     background-attachment: fixed;
     overflow: hidden;
     position: relative;
@@ -33,34 +33,23 @@ html {
 
 /* Add subtle animated background pattern */
 body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background:
-        radial-gradient(circle at 20% 50%, rgba(220, 38, 38, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(139, 69, 19, 0.1) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
+    display: none;
 }
 
 main {
-    width: 90vw;
+    width: 95vw;
     max-width: 1200px;
     height: 90vh;
     max-height: 900px;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(20px);
-    border-radius: 24px;
+    background: #ffffff;
+    border-radius: 12px;
     display: flex;
     align-items: stretch;
     flex-direction: column;
     justify-content: space-between;
     padding: 24px 32px 32px 32px;
-    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border: 1px solid #e5e7eb;
     overflow: hidden;
     position: relative;
     z-index: 1;
@@ -264,34 +253,26 @@ section:not(.populated)::-webkit-scrollbar-thumb:hover {
 }
 
 .starter-text {
-    padding: 40px 60px;
+    padding: 40px;
     font-size: 18px;
     line-height: 1.9;
-    color: #2d3748;
+    color: #4b5563;
     text-align: center;
     max-width: 900px;
-    margin: 0 auto;
+    margin: 0 auto 24px auto;
     font-weight: 400;
     letter-spacing: 0.2px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+    background: transparent;
     border-radius: 20px;
-    border: 1px solid rgba(83, 52, 131, 0.15);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border: none;
+    box-shadow: none;
     position: relative;
     overflow: visible;
     width: 100%;
-    /* Better spacing */
-    margin-bottom: 24px;
 }
 
 .starter-text::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #dc2626 0%, #533483 100%);
+    display: none;
 }
 
 .starter-heading {
@@ -522,19 +503,15 @@ input.question-box::placeholder {
 }
 
 button[type="submit"] {
-    padding: 14px 32px;
-    font-size: 14px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border: none;
-    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 6px;
     color: white;
-    /* RapidClaims red CTA button style */
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    background: #FF3B30;
+    border: none;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    transition: background-color 0.2s ease;
     min-width: 120px;
     display: flex;
     align-items: center;
@@ -551,9 +528,9 @@ button[type="submit"]::after {
 }
 
 button[type="submit"]:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: #E0352B;
+    transform: none;
+    box-shadow: none;
 }
 
 button[type="submit"]:hover:not(:disabled)::after {
