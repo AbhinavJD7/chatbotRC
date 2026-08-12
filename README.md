@@ -284,6 +284,12 @@ This project is ready for deployment on Vercel:
    - `GEMINI_API_KEY` or `GOOGLE_GENERATIVE_AI_API_KEY`
 4. **Deploy**: Vercel will automatically build and deploy your application
 
+### Astra DB Keep-Alive (macOS launchd)
+Since the Vercel Hobby plan automatically pauses cron jobs after 30 days of inactivity (which leads to Astra DB hibernating), a local macOS `launchd` agent was set up to bypass this limitation. 
+- A plist file (`com.user.pingwebsite.plist`) is placed in `~/Library/LaunchAgents/`
+- It executes a `curl` command to ping the deployed `/api/db-ping` route every 24 hours.
+- As long as the Mac is powered on and connected to the internet (or wakes from sleep), it acts as organic traffic, keeping both the Vercel project and Astra DB active permanently.
+
 ### Build Status
 ✅ Production build tested and verified
 ✅ All TypeScript errors resolved
