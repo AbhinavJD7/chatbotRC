@@ -156,7 +156,7 @@ export async function POST(req: Request) {
         const collection = await db.collection(ASTRA_DB_COLLECTION);
         const cursor = collection.find(null, {
           sort: { $vector: embedding },
-          limit: 10,
+          limit: 3, // Reduced from 10 to speed up API response
         });
         const documents = await cursor.toArray();
 
@@ -283,12 +283,8 @@ Format your responses using markdown where applicable. Do not return images.`;
     // Try multiple models in sequence until one works
     // Based on available models from your account, trying these in order:
     const modelNamesToTry = [
-      'gemini-2.5-flash',        // Latest stable Flash model
-      'gemini-2.0-flash',        // Stable Flash model
       'gemini-flash-latest',     // Latest Flash (auto-updates)
-      'gemini-2.5-pro',          // Latest Pro model
-      'gemini-pro-latest',       // Latest Pro (auto-updates)
-      'gemini-2.0-flash-exp',    // Experimental Flash
+      'gemini-3.6-flash',        // Latest stable Flash model
     ];
     let result: Awaited<ReturnType<typeof streamText>> | null = null;
     let lastError: Error | null = null;
