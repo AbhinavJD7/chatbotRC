@@ -132,7 +132,9 @@ export async function POST(req: Request) {
     // Generate embedding for the latest message
     let embedding;
     try {
+      console.time('Embedding API');
       embedding = await embeddings.embedQuery(latestMessage);
+      console.timeEnd('Embedding API');
     } catch (embeddingError) {
       console.error('Embedding generation failed:', embeddingError);
       return new Response(
@@ -153,12 +155,14 @@ export async function POST(req: Request) {
       if (!embedding || !Array.isArray(embedding) || embedding.length === 0) {
         console.warn('Invalid embedding, skipping vector search');
       } else {
+        console.time('Astra DB Query');
         const collection = await db.collection(ASTRA_DB_COLLECTION);
         const cursor = collection.find(null, {
           sort: { $vector: embedding },
           limit: 3, // Reduced from 10 to speed up API response
         });
         const documents = await cursor.toArray();
+        console.timeEnd('Astra DB Query');
 
         // Filter and process documents
         if (documents && Array.isArray(documents)) {
@@ -283,8 +287,10 @@ Format your responses using markdown where applicable. Do not return images.`;
     // Try multiple models in sequence until one works
     // Based on available models from your account, trying these in order:
     const modelNamesToTry = [
+      'gemini-flash-lite-latest', // Lightning fast, optimized for simple chat
+      'gemini-3.5-flash-lite',   // Fast fallback
+      'gemini-3.8-flash',        // Slower, heavier model
       'gemini-flash-latest',     // Latest Flash (auto-updates)
-      'gemini-3.6-flash',        // Latest stable Flash model
     ];
     let result: Awaited<ReturnType<typeof streamText>> | null = null;
     let lastError: Error | null = null;
@@ -298,6 +304,7 @@ Format your responses using markdown where applicable. Do not return images.`;
           model: currentModel,
           system: systemPrompt,
           messages: formattedMessages,
+          maxRetries: 0, // Fail immediately if 503 so we can try the next model!
         });
         console.log(`✅ Successfully using model: ${modelName}`);
         break; // Success, exit loop
